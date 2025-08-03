@@ -1,33 +1,53 @@
+let currentTempCelsius = null;
+let currentCity = "";
+let currentDescription = "";
+let isCelsius = true;
+
 async function getWeather() {
-    const city = document.getElementById("cityInput").value;
-  
-    if (!city) {
-      alert("Please enter a city!");
-      return;
+  const city = document.getElementById("cityInput").value;
+  const resultBox = document.getElementById("weatherResult");
+  const toggleBtn = document.getElementById("toggleUnitBtn");
+
+  resultBox.innerHTML = "Loading...";
+  toggleBtn.style.display = "none";
+
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/get_weather?city=${city}`);
+    const data = await response.json();
+
+    if (data.error) {
+      resultBox.innerHTML = `<span style="color: red;">${data.error}</span>`;
+    } else {
+      currentCity = data.city;
+      currentTempCelsius = data.temperature;
+      currentDescription = data.description;
+      isCelsius = true;
+
+      updateDisplay();
+      toggleBtn.style.display = "inline-block";
+      toggleBtn.textContent = "Switch to °F";
     }
-  
-    // Show loading message
-    document.getElementById("weatherResult").innerHTML = `
-      <p>Fetching weather for <strong>${city}</strong>...</p>
-    `;
-  
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/get_weather?city=${city}`);
-      const data = await response.json();
-  
-      if (data.error) {
-        document.getElementById("weatherResult").innerHTML = `<p>${data.error}</p>`;
-      } else {
-        document.getElementById("weatherResult").innerHTML = `
-          <h2>${data.city}</h2>
-          <p>Temperature: ${data.temperature} °C</p>
-          <p>Condition: ${data.description}</p>
-        `;
-      }
-    } catch (error) {
-      document.getElementById("weatherResult").innerHTML = `<p>Something went wrong. Please try again.</p>`;
-      console.error(error);
-    }
+  } catch (error) {
+    resultBox.innerHTML = `<span style="color: red;">Something went wrong</span>`;
   }
-  
-  
+}
+
+function updateDisplay() {
+  const resultBox = document.getElementById("weatherResult");
+  const temp = isCelsius
+    ? `${currentTempCelsius.toFixed(1)} °C`
+    : `${(currentTempCelsius * 9/5 + 32).toFixed(1)} °F`;
+
+  resultBox.innerHTML = `
+    <p><strong>City:</strong> ${currentCity}</p>
+    <p><strong>Temperature:</strong> ${temp}</p>
+    <p><strong>Description:</strong> ${currentDescription}</p>
+  `;
+}
+
+function toggleUnit() {
+  isCelsius = !isCelsius;
+  const toggleBtn = document.getElementById("toggleUnitBtn");
+  toggleBtn.textContent = isCelsius ? "Switch to °F" : "Switch to °C";
+  updateDisplay();
+}

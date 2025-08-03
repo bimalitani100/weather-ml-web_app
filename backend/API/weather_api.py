@@ -1,8 +1,15 @@
 # backend/api/weather_api.py
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Loads .env from the root directory
+
 
 def get_weather_data(city):
-    API_KEY = "552e50b20bb3ff3ca213cf539c040224"
+    API_KEY = os.getenv("OPENWEATHER_API_KEY")
+    if not API_KEY:
+        return {"error": "API key not found"}
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
     
